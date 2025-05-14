@@ -5,6 +5,7 @@ import { AuthModule } from './module/auth/auth.module';
 import { TaskModule } from './module/task/task.module';
 import { datasourceOptions } from './config/typeorm.config';
 import { TokenModule } from './services/token/token.module';
+import { MailModule } from './services/mail/mail.module';
 
 
 
@@ -36,7 +37,7 @@ import { TokenModule } from './services/token/token.module';
     
   // }),
   ,
-   AuthModule, TaskModule, TokenModule],
+   AuthModule, TaskModule, TokenModule, MailModule],
   controllers: [],
   providers: [],
 })

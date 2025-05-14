@@ -8,12 +8,12 @@ export class Token {
 
     @Column({
         unique: true,
-        nullable: true
+        nullable: false
     })
     code: string
 
     @Column({
-        nullable: true
+        nullable: false
     })
     subject: string
 
@@ -26,7 +26,7 @@ export class Token {
     @CreateDateColumn()
     updatedAt: Date
 
-    @ManyToOne(()=>User,(user)=>user.token)
+    @ManyToOne(()=>User,(user)=>user.tokens)
     user:User
 
 }

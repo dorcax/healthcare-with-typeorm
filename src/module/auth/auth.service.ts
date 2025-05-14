@@ -1,18 +1,20 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import {  User } from './entity/auth.entity';
-import { ILike, Repository } from 'typeorm';
-import { AuthDto, forgotPasswordDto, LoginDto } from './dto/auth.dto';
-import * as argon2 from "argon2"
-import { IsJWT } from 'class-validator';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+
+import * as argon2 from "argon2";
 import { TokenService } from 'src/services/token/token.service';
+import { Repository } from 'typeorm';
+import { AuthDto, forgotPasswordDto, LoginDto } from './dto/auth.dto';
+import { User } from './entity/auth.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MailService } from 'src/services/mail/mail.service';
 
 @Injectable()
 export class AuthService {
     constructor(@InjectRepository(User) private readonly authRepository: Repository<User>,
         private readonly jwt: JwtService,
-    private readonly tokenService:TokenService) { }
+        private readonly tokenService: TokenService,
+    private readonly mailService:MailService) { }
 
     // create user
     async createUser(dto: AuthDto) {
@@ -75,29 +77,65 @@ export class AuthService {
 
     }
     // // forget  password  
-    async forgetPassword(dto: forgotPasswordDto) {
+    async forgetPassword(dto: forgotPasswordDto, user) {
         const { email } = dto
-        const user = await this.authRepository.findOne({
+        const users = await this.authRepository.findOne({
             where: {
-                email: email.trim()
+                email: email.trim(),
+                id: user.sub
+
             }
         })
-        console.log(user)
-        if (!user) {
+        console.log(user.sub)
+        if (!users) {
             throw new NotFoundException("user not found")
         }
-        // const sendCode =await this.tokenService.createToken()
+        const sendCode = await this.tokenService.createToken({
+            subject: user.name,
+            userId: user.id,
+            expiry: new Date(Date.now() + 1000 * 60 * 15)
+        }, users)
+        console.log(sendCode)
+        // configure email
+        const sendOtpMail =await this.mailService.SendMail({
+            to:users.email,
+            subject:"user otp  for forget password",
+            template:"otpMail",
+            context:{
+                name:users.name,
+                code:sendCode.code
+            }
+        })
+        
         return {
-            message: "link sent to user"
+            message: "otp code  sent to user email"
         }
 
     }
     // find all user  
-    async getUser() {
+    async getUser(user) {
+        const users = await this.authRepository.find({
+            where: {
+                id: user.sub,
+            },
+            relations: {
+                tokens: true
+            }
+        })
 
-        return await this.authRepository.find()
-
-
+        if (!users) {
+            throw new NotFoundException("user not found ")
+        }
+        return users
     }
 
 }
+
+// learn how to create current user
+// learn how to use the custom decorator
+// implement authorization
+// webhook
+// learn how migration work in typeorm
+// learn payment integration
+// learn how to style mail form with table using tailwind
+// swagger documentation

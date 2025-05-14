@@ -6,9 +6,14 @@ import { User} from './entity/auth.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TokenModule } from 'src/services/token/token.module';
+import { Token } from 'src/services/token/entity/token.entity';
+import { MailService } from "../../services/mail/mail.service";
+import { MailModule } from 'src/services/mail/mail.module';
+
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }),TokenModule, TypeOrmModule.forFeature([User]), JwtModule.registerAsync({
+  imports: [MailModule,ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forFeature([User,Token]), JwtModule.registerAsync({
     imports:[ConfigModule],
     inject: [ConfigService],
     useFactory: (config: ConfigService) => ({
@@ -20,7 +25,9 @@ import { TokenModule } from 'src/services/token/token.module';
     })
 
 
-  })],
+  }),
+
+TokenModule],
   controllers: [AuthController],
   providers: [AuthService],
 })

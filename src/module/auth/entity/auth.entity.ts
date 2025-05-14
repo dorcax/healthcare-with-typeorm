@@ -38,5 +38,5 @@ export class User {
 
 
     @OneToMany(()=>Token,(token)=>token.user)
-    token:Token
+    tokens:Token[]
 }

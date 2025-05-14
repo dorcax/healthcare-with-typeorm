@@ -1,13 +1,18 @@
-import { CanActivate, ExecutionContext, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
 import { Request } from "express";
 import { Observable } from "rxjs";
+import { User } from "../entity/auth.entity";
+import { Repository } from "typeorm";
 
 
 
-
+@Injectable()
 export class AuthGuard implements CanActivate {
-    constructor(private readonly jwt:JwtService){}
+    constructor(private readonly jwt:JwtService,
+        @InjectRepository(User) private readonly authRepository:Repository<User>
+    ){}
     async canActivate(context: ExecutionContext): Promise<boolean>  {
         const request=context.switchToHttp().getRequest()
         const token  =await this.extractTokenFromHeader(request)
@@ -16,7 +21,20 @@ export class AuthGuard implements CanActivate {
         }
         try {
             const decoded =await this.jwt.verifyAsync(token)
-            request.user =decoded
+            // find user 
+             const user =await this.authRepository.findOne({
+                where:{
+                    id:decoded.sub
+                }
+             })
+             if(!user){
+                throw new NotFoundException("user not found ")
+             }
+             console.log("decoded",user)
+            request.user ={
+                ...decoded,
+                user
+            }
         } catch (error) {
             throw new UnauthorizedException()
         }
@@ -25,10 +43,10 @@ export class AuthGuard implements CanActivate {
 
 
 
-    private extractTokenFromHeader(request: Request) {
+    private extractTokenFromHeader(request: Request):string |undefined {
         const authHeader = request.headers.authorization
         if (authHeader && authHeader.startsWith("Bearer")) {
-            return authHeader.split(' ')[' ']
+            return authHeader.split(' ')[1]
         }
         return undefined
     }
