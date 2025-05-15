@@ -1,13 +1,13 @@
 import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
+import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from "argon2";
+import { MailService } from 'src/services/mail/mail.service';
 import { TokenService } from 'src/services/token/token.service';
 import { Repository } from 'typeorm';
-import { AuthDto, forgotPasswordDto, LoginDto } from './dto/auth.dto';
+import { AuthDto, forgotPasswordDto, LoginDto, resetPasswordDto, verificationCodeDto } from './dto/auth.dto';
 import { User } from './entity/auth.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MailService } from 'src/services/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -44,6 +44,8 @@ export class AuthService {
 
 
     }
+
+
 
     // login user 
     async loginUser(dto: LoginDto) {
@@ -112,6 +114,40 @@ export class AuthService {
         }
 
     }
+
+    // verify otp 
+    async verificationCode(dto:verificationCodeDto,user){
+        const userExist =await this.authRepository.findOne({
+            where:{
+                id:user.sub
+            },
+            relations:{
+                tokens:true
+            }
+        })
+        if(!userExist){
+            throw new NotFoundException("user does not exist ")
+        }
+        // verify the code  
+        const code =dto.code
+        const token =await this.tokenService.verifyOtp({code})
+      
+       return{
+        message:"otp code verified successfully"
+       }
+    }
+
+// reset password 
+async resetPassword(dto:resetPasswordDto,user){
+    const {password,confirmPassword} =dto 
+    return await this.authRepository.update(
+      {id:user.sub},
+        {password:await argon2.hash(password)}
+    )
+
+}
+
+
     // find all user  
     async getUser(user) {
         const users = await this.authRepository.find({
@@ -131,9 +167,8 @@ export class AuthService {
 
 }
 
-// learn how to create current user
-// learn how to use the custom decorator
-// implement authorization
+
+
 // webhook
 // learn how migration work in typeorm
 // learn payment integration

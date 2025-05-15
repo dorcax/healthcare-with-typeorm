@@ -3,7 +3,7 @@ export class MailDto {
     subject: string
     context: {
         name:string ,
-        code:string,
+        code:Number,
      
     }
     template:any

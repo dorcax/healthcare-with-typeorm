@@ -1,4 +1,4 @@
-import { IsNumber, IsObject, IsString } from "class-validator"
+import { IsEmail, IsNumber, IsObject, IsString } from "class-validator"
 import { User } from "src/module/auth/entity/auth.entity"
 
 export class TokenDto{
@@ -10,16 +10,14 @@ export class TokenDto{
 
     @IsNumber()
     userId:number
-
-
-   
-
     
     @IsString()
-    expiry:Date
-    
-    
-   
+    expiry:Date  
+}
 
+
+export class VerifyDto {
+    @IsNumber()
+    code:number 
    
 }

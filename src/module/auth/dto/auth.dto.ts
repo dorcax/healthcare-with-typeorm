@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator"
+import { IsEmail, IsNotEmpty, IsNumber, IsString } from "class-validator"
 
 
 
@@ -26,7 +26,21 @@ export class LoginDto {
 }
 
 export class forgotPasswordDto{
-     @IsString()
-    @IsNotEmpty()
+     @IsEmail()
+   
    email:string
+}
+export class verificationCodeDto{
+ @IsNumber()
+   code:number
+}
+
+
+export class resetPasswordDto{
+      @IsString()
+    @IsNotEmpty()
+    password:string
+      @IsString()
+    @IsNotEmpty()
+   confirmPassword:string
 }

@@ -10,7 +10,7 @@ export class Token {
         unique: true,
         nullable: false
     })
-    code: string
+    code:  number
 
     @Column({
         nullable: false
